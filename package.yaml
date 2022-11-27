@@ -21,6 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/upen
 
 dependencies:
 - base >= 4.7 && < 5
+- mtl == 2.2.2
+
 
 ghc-options:
 - -Wall
