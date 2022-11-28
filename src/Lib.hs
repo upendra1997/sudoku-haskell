@@ -8,7 +8,7 @@ module Lib
   )
 where
 
-import           Data.List (nub, transpose)
+import           Data.List (nub, sort, transpose, (\\))
 
 type Cell = Int
 
@@ -72,8 +72,8 @@ blocks sudoku = (fmap . fmap) block blockCoordinates
     getSlice = slice2D sudoku
     block ((startRow, startCol), (endRow, endCol)) = getSlice startRow endRow startCol endCol
 
-valid :: Sudoku -> Bool
-valid sudoku = (all . all) (== 9) $ (fmap . fmap) (length . nub) all'
+getAllValues :: Sudoku -> [[[Cell]]]
+getAllValues sudoku = (fmap . fmap) (sort . nub) all'
   where
     add' = (zipWith . zipWith) (++)
     all' = add' blocks' $ add' rows' cols'
@@ -81,11 +81,37 @@ valid sudoku = (all . all) (== 9) $ (fmap . fmap) (length . nub) all'
     cols' = columns sudoku
     blocks' = fmap concat <$> blocks sudoku
 
-getSolutions :: Sudoku -> [Sudoku]
-getSolutions x = filter valid allSudokus
-  where
-    allSudokus = crossProduct (crossProduct . fmap possibilities <$> x)
+valid :: Sudoku -> Bool
+valid sudoku = (all . all) (== 9) (fmap length <$> getAllValues sudoku)
 
+
+possibilitiesWithContext :: Sudoku -> Coord -> [Cell]
+possibilitiesWithContext sudoku coord = if currentValue == 0 then possibleValues else [currentValue]
+  where (x, y) = coord
+        currentValue = head $ concat $ slice2D sudoku x (x + 1) y (y + 1)
+        allValues' = getAllValues sudoku
+        allValues = concatMap concat $ slice2D allValues' x (x + 1) y (y + 1)
+        possibleValues = [0..sudokuSize] \\ allValues
+
+-- getSolutions :: Sudoku -> [Sudoku]
+-- getSolutions sudoku = filter valid allSudokus
+--   where
+--     allSudokus = crossProduct (crossProduct . fmap possibilities <$> sudoku)
+
+-- ghci> product $ fmap product $ fmap (length . possibilities) <$> sudoku
+-- 8599843895832833305
+
+getSolutions :: Sudoku -> [Sudoku]
+getSolutions sudoku = filter valid allSudokus
+  where
+    possibilities' = possibilitiesWithContext sudoku
+    allSudokus = crossProduct (crossProduct . fmap possibilities' <$> coordinates)
+
+-- ghci> product $ fmap product $ fmap (length . possibilities') <$> coordinates
+-- 2972033482752
+-- almost 1000000 times fewer searches have to be done for this
+
+-- sudoku :: Sudoku
 -- sudoku = [[9, 2, 6, 3, 4, 0, 7, 0, 1],
 --           [0, 5, 0, 0, 2, 6, 4, 0, 9],
 --           [0, 7, 0, 8, 0, 1, 0, 0, 0],
