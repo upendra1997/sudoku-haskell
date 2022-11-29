@@ -2,7 +2,7 @@ module Main (main) where
 
 import Data.Char (digitToInt)
 import Control.Monad (replicateM)
-import Lib (Cell, Row, sudokuSize, getSolutions, showSudoku)
+import Lib (Cell, Row, sudokuSize, getSolutions, generateSudoku, showSudoku)
 
 parseChar :: Char -> Cell
 parseChar '.' = 0
@@ -21,4 +21,4 @@ readRow = do
 main :: IO ()
 main = do
     sudoku <- replicateM sudokuSize readRow
-    putStrLn $ head $ showSudoku <$> getSolutions sudoku
+    mapM_ (putStrLn . showSudoku) $ take 1 $ generateSudoku sudoku
