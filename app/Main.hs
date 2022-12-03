@@ -21,4 +21,4 @@ readRow = do
 main :: IO ()
 main = do
     sudoku <- replicateM sudokuSize readRow
-    mapM_ (putStrLn . showSudoku) $ take 1 $ generateSudoku sudoku
+    mapM_ (putStrLn . showSudoku) $ generateSudoku sudoku
